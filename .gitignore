@@ -1,0 +1,12 @@
+# ignore all metadata
+*/.metadata
+# ignore all recommenders
+*/.recommenders
+# ignore .settings
+*/*/.settings
+# ignore bin
+*/*/bin
+# ignore .classpath
+*/*/.classpath
+# ignore .project
+*/*/.project
