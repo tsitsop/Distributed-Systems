@@ -10,3 +10,6 @@
 */*/.classpath
 # ignore .project
 */*/.project
+# ignore .class files
+*/*/src/main/java/*.class
+*/*/src/main/java/*/*.class
