@@ -111,46 +111,4 @@ public class TwitterServer extends Thread {
 		return e;
 	}
 	
-	
-	
-	/**
-	 * REMOVE EVENTUALLY
-	 * test to make sure we can serialize and deserialize messages
-	 */
-	public static void testSerialization() {
-		Tweet t = new Tweet(new Site("george", 10), "hello", new DateTime());
-		
-		String path = new File("src/main/resources/output.ser").getAbsolutePath();
-		try {
-			FileOutputStream fout = new FileOutputStream(path);
-			ObjectOutputStream out = new ObjectOutputStream(fout);
-			out.writeObject(t);
-			out.close();
-			fout.close();
-		} catch(IOException i) {
-			i.printStackTrace();
-		}
-
-		try {
-	         FileInputStream fin = new FileInputStream(path);
-	         ObjectInputStream in = new ObjectInputStream(fin);
-	         t = (Tweet) in.readObject();
-	         in.close();
-	         fin.close();
-	      } catch(IOException i) {
-	         i.printStackTrace();
-	         return;
-	      } catch(ClassNotFoundException c) {
-	         System.out.println("Employee class not found");
-	         c.printStackTrace();
-	         return;
-	      }
-		
-		System.out.println(t.getEventType());
-		System.out.println(t.getUser());
-		System.out.println(t.getMessage());
-		System.out.println(t.getTime());
-	}
-	
-	
 }

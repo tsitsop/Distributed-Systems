@@ -65,10 +65,32 @@ public class Initializer {
 		// get the site info for this server
 		Site mySite = sites.get(id);
 		
+		
+		
+		
+		
+		
+		// initialize or recover utility variables
+		if (UtilityVariables.existVariables()) {
+			//recover variables
+		} else {
+			// initialize variables
+			// might be sites.size()-1?
+			UtilityVariables utils = new UtilityVariables(sites.size());
+		}
+		// i haven't passed the variables anywhere - up to you.
+		// i also haven't made it so they write to/from the files. also up to you.
+		
+		
+		
+		
+		
+		
+		
+		
 		// now need to start 2 servers:
 		//	1. a server to wait for user input and send tweets (TweetServer)
 		//  2. a server to wait for tweets to come in (ListeningServer)
-		
 		try {
 			Thread twitterServerThread = new TwitterServer(mySite, sites);
 	        twitterServerThread.start();
