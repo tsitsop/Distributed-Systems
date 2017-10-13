@@ -23,12 +23,15 @@ import main.java.events.Unblock;
 public class TwitterServer extends Thread {
 	private Site mySite;
 	private List<Site> sites;
-	
-	public TwitterServer(Site site, List<Site> sites) throws IOException {
+	private ArrayList<LogEvent> log;
+ 	private UtilityVariables vars;
+
+	public TwitterServer(Site site, List<Site> sites, UtilityVariables u) throws IOException {
 		this.mySite = site;
 		this.sites = sites;
+		this.vars = u;
 	}
-	
+
 	/**
 	 * Listen for user input and react accordingly
 	 */
@@ -37,13 +40,13 @@ public class TwitterServer extends Thread {
 		String command;
 		TwitterEvent e;
 		Object o;
-		
+
 		while(true) {
 			try {
 				// listen for user input
 				System.out.println("Waiting for you to enter a command: ");
 				command = inFromUser.readLine();
-				
+
 				// determine command the user requested
 				o = parseCommand(command);
 
@@ -51,22 +54,25 @@ public class TwitterServer extends Thread {
 				if (o == null) {
 					continue;
 				}
-				
-				// if it was a view command, 
+
+				// if it was a view command,
 				if (o.getClass().equals(String.class)) {
 					//  do nothing for now
 				}
-				
+
 				e = (TwitterEvent) o;
-				
+
 				// if the command  is an event, do what you should do
 				if (e.getEventType().compareTo("tweet") == 0) {
+
+					vars.tickClock();
+					log.add(new LogEvent(mySite.id,vars.getClock(),e));
+
 					for (int i=0; i< sites.size(); i++) {
 						// We don't want to send a tweet to ourselves
 						if (mySite.equals(sites.get(i))) {
 							continue;
 						}
-						
 						// create a TweetClient thread to send our tweet to the destination
 						TweetClient tc = new TweetClient((Tweet)e, sites.get(i));
 						tc.start();
@@ -81,12 +87,12 @@ public class TwitterServer extends Thread {
 			}
 		}
 	}
-	
-	
-	
+
+
+
 	/**
 	 * Parse the command that was entered by the user
-	 * 
+	 *
 	 * @param command the string command
 	 * @return a TwitterEvent representing that command
 	 */
@@ -94,7 +100,7 @@ public class TwitterServer extends Thread {
 		System.out.println("command was " + command);
 		String[] splitCommand = command.split(" ", 2);
 		TwitterEvent e;
-		
+
 		if (splitCommand[0].compareTo("view") == 0) {
 			return "view";
 		} else if (splitCommand[0].compareTo("tweet") == 0) {
@@ -107,8 +113,8 @@ public class TwitterServer extends Thread {
 			System.out.println("Invalid command: try again");
 			return null;
 		}
-		
+
 		return e;
 	}
-	
+
 }
