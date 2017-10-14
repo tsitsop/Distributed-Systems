@@ -7,6 +7,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This class will initialize the site, creating the TwitterServer 
+ * and ListeningServer. It will also initialize the site variables.
+ * 
+ * @author tsitsg
+ *
+ */
 public class Initializer {
 
 	/**
@@ -19,8 +26,9 @@ public class Initializer {
 		BufferedReader br;
 	    String fLine;
 	    String[] lParts;
-			int i = 0;
+		int id = 0;
 	    List<Site> sites = new ArrayList<Site>();
+	    
 	    try {
 	        br = new BufferedReader(new FileReader(in));
 	        // while there is stuff to read
@@ -29,8 +37,8 @@ public class Initializer {
 	        	lParts = fLine.split(" ");
 
 	        	// add a site to sites
-	            sites.add(new Site(lParts[0], Integer.parseInt(lParts[1]),i));
-						i+=1;
+	            sites.add(new Site(lParts[0], Integer.parseInt(lParts[1]), id, lParts[2]));
+				id += 1;
 	        }
 
 		    br.close();
@@ -42,17 +50,19 @@ public class Initializer {
 	    return sites;
 	}
 
+	
 	public static void main(String[] args) {
+		// The path to the configuration file
 		String path = new File("src/main/resources/input.txt").getAbsolutePath();;
 		File input = new File(path);
 
-		// Make sure enough arguments
+		// Make sure enough arguments (need the id of this site)
 		if (args.length < 1) {
 			System.err.println("Need a number as input");
 			System.exit(1);
 		}
 
-		// which line it is in the input file
+		// Get the site id
 		int id  = 0;
 		try {
 			id = Integer.parseInt(args[0]);
@@ -61,42 +71,30 @@ public class Initializer {
 			System.exit(1);
 		}
 
-		// get the list of sites
+		// Get the list of sites
 		List<Site> sites = parseInputFile(input);
 
-		// get the site info for this server
+		// Get the site info for this server
 		Site mySite = sites.get(id);
+		
+		SiteVariables vars = null;
 
-
-
-
-
-		UtilityVariables utils  = new UtilityVariables(sites.size());
-		/*// initialize or recover utility variables
-		if (UtilityVariables.existVariables()) {
-			//recover variables
+		// initialize or recover site variables
+		if (UtilityFunctions.freshStart(mySite.getName())) {
+			vars = new SiteVariables(sites.size(), mySite);
 		} else {
-			// initialize variables
-			// might be sites.size()-1?
-			utils = new UtilityVariables(sites.size());
-		}*/
-		// i haven't passed the variables anywhere - up to you.
-		// i also haven't made it so they write to/from the files. also up to you.
+			System.out.println("Recovering from a failure!");
+			vars = UtilityFunctions.readVars(mySite);
+		}
 
-
-
-
-
-
-
-
-		// now need to start 2 servers:
-		//	1. a server to wait for user input and send tweets (TweetServer)
-		//  2. a server to wait for tweets to come in (ListeningServer)
+		// Start 2 servers:
+		// 1. a server to wait for user input and send tweets (TwitterServer)
+		// 2. a server to wait for tweets to come in (ListeningServer)
 		try {
-			Thread twitterServerThread = new TwitterServer(mySite, sites,utils);
+			Thread twitterServerThread = new TwitterServer(vars, sites);
 	        twitterServerThread.start();
-	        Thread listeningServerThread = new ListeningServer(mySite);
+	        
+	        Thread listeningServerThread = new ListeningServer(vars);
 	        listeningServerThread.start();
 		} catch(IOException e) {
 			e.printStackTrace();

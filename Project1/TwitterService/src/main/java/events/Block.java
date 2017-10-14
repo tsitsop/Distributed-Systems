@@ -22,10 +22,10 @@ public class Block extends TwitterEvent {
 	public Block() {}
 	
 	/* Getters */
-	public Site getblocker() {
+	public Site getBlocker() {
 		return this.blocker;
 	}
-	public String getblockee() {
+	public String getBlockee() {
 		return this.blockee;
 	}
 	public DateTime getTime() {
@@ -33,10 +33,10 @@ public class Block extends TwitterEvent {
 	}
 	
 	/* Setters */
-	public void setblocker(Site blocker) {
+	public void setBlocker(Site blocker) {
 		this.blocker = blocker;
 	}
-	public void setblockee(String blockee) {
+	public void setBlockee(String blockee) {
 		this.blockee = blockee;
 	}
 	public void setTime(DateTime time) {

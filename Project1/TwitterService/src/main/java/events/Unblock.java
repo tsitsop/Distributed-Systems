@@ -23,10 +23,10 @@ public class Unblock extends TwitterEvent {
 	public Unblock() {}
 	
 	/* Getters */
-	public Site getunblocker() {
+	public Site getUnblocker() {
 		return this.unblocker;
 	}
-	public String getunblockee() {
+	public String getUnblockee() {
 		return this.unblockee;
 	}
 	public DateTime getTime() {
@@ -34,10 +34,10 @@ public class Unblock extends TwitterEvent {
 	}
 	
 	/* Setters */
-	public void setunblocker(Site unblocker) {
+	public void setUnblocker(Site unblocker) {
 		this.unblocker = unblocker;
 	}
-	public void setunblockee(String unblockee) {
+	public void setUnblockee(String unblockee) {
 		this.unblockee = unblockee;
 	}
 	public void setTime(DateTime time) {

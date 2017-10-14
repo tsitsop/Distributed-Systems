@@ -29,7 +29,8 @@ public class Tweet extends TwitterEvent {
 		return this.message;
 	}
 	public DateTime getTime() {
-		return this.time;
+		// return the local time
+		return this.time.withZone(DateTimeZone.getDefault());
 	}
 	
 	/* Setters */

@@ -13,3 +13,6 @@
 # ignore .class files
 */*/src/main/java/*.class
 */*/src/main/java/*/*.class
+# ignore .dat and .ser files
+*/*/src/main/resources/*.ser
+*/*/src/main/resources/*.dat

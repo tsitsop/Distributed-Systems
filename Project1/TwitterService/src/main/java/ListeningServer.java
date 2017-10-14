@@ -1,26 +1,36 @@
 package main.java;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-import main.java.events.Tweet;
-
+/**
+ * This class represents the server that listens for incoming tweets.
+ * When it receives a tweet it updates its dictionary, log, and 
+ * matrix clock as necessary.
+ * @author tsitsg
+ *
+ */
 public class ListeningServer extends Thread{
-	private Site mySite;
+	private SiteVariables vars;
 	private ServerSocket serverSocket;
 
-	public ListeningServer(Site site) throws IOException {
-		this.mySite = site;
-		this.serverSocket = new ServerSocket(site.port);
+	/**
+	 * Constructor
+	 * @param vars The SiteVariables object that has the log,
+ 	 * 				 dictionary, local clock, and matrix clock.
+	 * @throws IOException	if an I/O error occurs when opening the socket
+	 */
+	public ListeningServer(SiteVariables vars) throws IOException {
+		this.vars = vars;
+		this.serverSocket = new ServerSocket(vars.getMySite().getPort());
 	}
 
 	public void run() {
-		Tweet tweet;
-
+		TwitterMessage m;
+		ObjectInputStream inFromClient;
+		
 		while (true) {
 			try {
 				// wait for a tweet to come in
@@ -29,20 +39,27 @@ public class ListeningServer extends Thread{
 				System.out.println("We have received a connection");
 
 				// set up input streams
-				ObjectInputStream inFromClient =  new ObjectInputStream(clientSocket.getInputStream());
+				inFromClient =  new ObjectInputStream(clientSocket.getInputStream());
 
 				// read in the tweet
 				System.out.println("We are waiting for the tweet to come through");
-		        tweet = (Tweet) inFromClient.readObject();
+		        m = (TwitterMessage) inFromClient.readObject();
 		        inFromClient.close();
 
 		        // print the contents of the tweet
-				System.out.println("We have received the tweet! it came from " + tweet.getUser().ip + ":" + tweet.getUser().port + "and says the following:" );
-				System.out.println(tweet.getMessage());
-				System.out.println("It was sent at " + tweet.getTime() + "UTC");
-
+				System.out.println("We have received the tweet! it came from " + m.getTweet().getUser().getIp() + ":" + m.getTweet().getUser().getPort() + "and says the following:" );
+				System.out.println(m.getTweet().getMessage());
+				System.out.println("It was sent at " + m.getTweet().getTime());
+				System.out.println("\n\nThe partial log looks like the following:\n" + m.getNp().toString());
 				
-
+				// create newEvents log
+				
+				// update the dictionary with block/unblock events
+				
+				// update our entire matrix clock
+				
+				// update our parial log
+				
 			} catch (IOException e) {
 				e.printStackTrace();
 			} catch(ClassNotFoundException c) {
