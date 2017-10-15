@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.ConcurrentHashMap;
 import java.lang.Math.*;
 
 /**
@@ -54,26 +55,30 @@ public class ListeningServer extends Thread{
 				System.out.println("\n\nThe partial log looks like the following:\n" + m.getNp().toString());
 
 				// create newEvents log
-
+				ConcurrentHashMap<LogEvent, String> np = m.getNp();
+				ConcurrentHashMap<LogEvent, String> newEvents = SiteVariables.getNP(np, vars.getMatrixClock(), vars.getMySite().getId(), vars.getNumProcesses());
+				// truncate log
+				// add newEvents to log
+				
 				// update the dictionary with block/unblock events
-					//
+				// check block/unblocks in NP and adjust accordingly
+				
 				// update our entire matrix clockmySite
 					for(int k = 0,l=0;k<vars.getNumProcesses() && l<vars.getNumProcesses();k++,l++)
 					{
-						vars.setMatrixClockValue(vars.getMatrixClock(),vars.getNumProcesses(),vars.getMySite().getId(),k,(Math.max(
-							vars.getMatrixClockValue(vars.getMatrixClock(),vars.getNumProcesses(),vars.getMySite().getId(),k),
+						vars.setMatrixClockValue(vars.getMatrixClock(), vars.getNumProcesses(), vars.getMySite().getId(), k, 
+								(Math.max(vars.getMatrixClockValue(vars.getMatrixClock(),vars.getNumProcesses(),vars.getMySite().getId(),k),
 							vars.getMatrixClockValue(m.getMatrixClock(),vars.getNumProcesses(),m.getTweet().getUser().getId(),k))));
 
-							vars.setMatrixClockValue(vars.getMatrixClock(),vars.getNumProcesses(),k,l,(Math.max(
-								vars.getMatrixClockValue(vars.getMatrixClock(),vars.getNumProcesses(),k,l),
-								vars.getMatrixClockValue(m.getMatrixClock(),vars.getNumProcesses(),k,l))));
+						vars.setMatrixClockValue(vars.getMatrixClock(),vars.getNumProcesses(),k,l,(Math.max(
+							vars.getMatrixClockValue(vars.getMatrixClock(),vars.getNumProcesses(),k,l),
+							vars.getMatrixClockValue(m.getMatrixClock(),vars.getNumProcesses(),k,l))));
 					}
 					/*	for	k=1…N
 										Tj (j,k)	=	max	(	Tj(j,k)	,	Ti(i,k)	)
 							for	k=1…N,	l	=	1…N
 										Tj (k,l)	=	max	(	Tj (k,l)	,	Ti(k,l)	)*/
-				// update our parial log
-				vars.addToLog(new LogEvent(vars.getMySite().getId(), vars.getLocalClock(),m.getTweet()));
+				
 
 			} catch (IOException e) {
 				e.printStackTrace();

@@ -55,12 +55,6 @@ public class TwitterServer extends Thread {
 				System.out.println("Waiting for you to enter a command: ");
 				command = inFromUser.readLine();
 
-
-
-				//////////////////////////////////////////////////////////////////////////////////////////////
-				// Need to add functionality for view, view log, view dictionary
-				//////////////////////////////////////////////////////////////////////////////////////////////
-
 				// determine command the user requested
 				o = parseCommand(command);
 
@@ -85,20 +79,21 @@ public class TwitterServer extends Thread {
             TwitterEvent te = le.getEvent();
             if (te.getEventType().compareTo("tweet") == 0)
             {
+            	// add blocked case
               Tweet t = (Tweet)te;
-              System.out.println("Tweet: "+t.getUser().getID()+" - "+t.getMessage());
+              System.out.println("Tweet: "+t.getUser().getId()+" - "+t.getMessage());
             }
             if (o.equals("log"))
             {
               if (te.getEventType().compareTo("block") == 0)
               {
                 Block b = (Block)te;
-                System.out.println("Block: "+b.getBlocker().getID()+" - "+b.getBlockee());
+                System.out.println("Block: "+b.getBlocker().getId()+" - "+b.getBlockee());
               }
               else if (te.getEventType().compareTo("unblock") == 0)
               {
                 Unblock u = (Unblock)te;
-                System.out.println("Unblock: "+u.getUnblocker().getID()+" - "+u.getUnblockee());
+                System.out.println("Unblock: "+u.getUnblocker().getId()+" - "+u.getUnblockee());
               }
             }
           }
