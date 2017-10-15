@@ -29,11 +29,18 @@ public class UtilityFunctions {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
 		return false;
 	}
 
-
+	public static boolean isEmpty(String name)
+	{
+		File f = new File(varFilePath+name + ".dat").getAbsoluteFile();
+		if (f.length()>0)
+		{
+			return false;
+		}
+		return true;
+	}
 	/**
 	   * Write log, dictionary, local clock, matrix clock to disk
 	   *
@@ -51,7 +58,7 @@ public class UtilityFunctions {
 		  }
 	  }
 
-	  
+
 	  /**
 	   * Read log, dictionary, local clock, matrix clock from disk
 	   *

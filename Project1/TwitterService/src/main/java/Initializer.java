@@ -8,9 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * This class will initialize the site, creating the TwitterServer 
+ * This class will initialize the site, creating the TwitterServer
  * and ListeningServer. It will also initialize the site variables.
- * 
+ *
  * @author tsitsg
  *
  */
@@ -28,7 +28,7 @@ public class Initializer {
 	    String[] lParts;
 		int id = 0;
 	    List<Site> sites = new ArrayList<Site>();
-	    
+
 	    try {
 	        br = new BufferedReader(new FileReader(in));
 	        // while there is stuff to read
@@ -50,7 +50,7 @@ public class Initializer {
 	    return sites;
 	}
 
-	
+
 	public static void main(String[] args) {
 		// The path to the configuration file
 		String path = new File("src/main/resources/input.txt").getAbsolutePath();;
@@ -76,7 +76,7 @@ public class Initializer {
 
 		// Get the site info for this server
 		Site mySite = sites.get(id);
-		
+
 		SiteVariables vars = null;
 
 		// initialize or recover site variables
@@ -84,7 +84,14 @@ public class Initializer {
 			vars = new SiteVariables(sites.size(), mySite);
 		} else {
 			System.out.println("Recovering from a failure!");
-			vars = UtilityFunctions.readVars(mySite);
+			if (UtilityFunctions.isEmpty(mySite.getName()))
+			{
+				vars = new SiteVariables(sites.size(), mySite);
+			}
+			else
+			{
+				vars = UtilityFunctions.readVars(mySite);
+			}
 		}
 
 		// Start 2 servers:
@@ -93,7 +100,7 @@ public class Initializer {
 		try {
 			Thread twitterServerThread = new TwitterServer(vars, sites);
 	        twitterServerThread.start();
-	        
+
 	        Thread listeningServerThread = new ListeningServer(vars);
 	        listeningServerThread.start();
 		} catch(IOException e) {

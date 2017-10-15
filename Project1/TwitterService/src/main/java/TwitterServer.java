@@ -65,6 +65,16 @@ public class TwitterServer extends Thread {
 
 				// if it was a view command, print the tweets
 				if (o.getClass().equals(String.class)) {
+
+          if(o.equals("dict"))
+          {
+            for (Block b : vars.getDictionary().keySet())
+            {
+              System.out.println("Block: "+b.getBlocker().getName()+" - "+b.getBlockee());
+            }
+            continue;
+          }
+
           ArrayList<LogEvent> sortedList = new ArrayList<LogEvent>(vars.getPartialLog().keySet()) ;
           Collections.sort(sortedList, new Comparator<LogEvent>()
           {
@@ -79,36 +89,46 @@ public class TwitterServer extends Thread {
             TwitterEvent te = le.getEvent();
             if (te.getEventType().compareTo("tweet") == 0)
             {
-            	// add blocked case
               Tweet t = (Tweet)te;
-              System.out.println("Tweet: "+t.getUser().getId()+" - "+t.getMessage());
+            	// add blocked case
+              boolean canView = false;
+              if (!vars.hasBlocked(t.getUser().getName(),vars.getMySite().getName())||o.equals("log"))
+              {
+                canView = true;
+              }
+              if(canView)
+              {
+                System.out.println("Tweet: "+t.getUser().getName()+" - "+t.getMessage());
+              }
             }
             if (o.equals("log"))
             {
               if (te.getEventType().compareTo("block") == 0)
               {
                 Block b = (Block)te;
-                System.out.println("Block: "+b.getBlocker().getId()+" - "+b.getBlockee());
+                System.out.println("Block: "+b.getBlocker().getName()+" - "+b.getBlockee());
               }
               else if (te.getEventType().compareTo("unblock") == 0)
               {
                 Unblock u = (Unblock)te;
-                System.out.println("Unblock: "+u.getUnblocker().getId()+" - "+u.getUnblockee());
+                System.out.println("Unblock: "+u.getUnblocker().getName()+" - "+u.getUnblockee());
               }
             }
-          }
 
+          }
+          continue;
 				}
 
 				// if it wasn't any of the above events, we know it was a TwitterEvent
 				e = (TwitterEvent) o;
 
-				// tick clocks, add the event to the partial log
-				vars.tickClock(vars.getMySite().getId());
-				vars.addToLog(new LogEvent(vars.getMySite().getId(), vars.getLocalClock(),e));
-
 
 				if (e.getEventType().compareTo("tweet") == 0) {
+
+  				// tick clocks, add the event to the partial log
+  				vars.tickClock(vars.getMySite().getId());
+  				vars.addToLog(new LogEvent(vars.getMySite().getId(), vars.getLocalClock(),e));
+
 					// store our site variables to disk to maintain memory
 					UtilityFunctions.writeVars(vars);
 
@@ -122,9 +142,9 @@ public class TwitterServer extends Thread {
 						}
 
 						// create NP
-						np.clear();
+						// np.clear();
 						np = SiteVariables.getNP(vars.getPartialLog(), vars.getMatrixClock(), i, sites.size());
-
+            //System.out.println("NP = " + np);
 						// create a TweetClient thread to send TwitterMessage(tweet,matrixClock,NP)
 						TwitterMessage message = new TwitterMessage((Tweet) e, vars.getMatrixClock(), np);
 						TweetClient tc = new TweetClient(message, sites.get(i));
@@ -141,7 +161,13 @@ public class TwitterServer extends Thread {
                   }
 						      if(!vars.addToDictionary(be)) {
 							       System.err.println("You already blocked " + be.getBlockee());
+                     continue;
 						      }
+
+         				// tick clocks, add the event to the partial log
+        				vars.tickClock(vars.getMySite().getId());
+        				vars.addToLog(new LogEvent(vars.getMySite().getId(), vars.getLocalClock(),e));
+
 					     } else {
 						      Unblock ue = (Unblock) e;
 						      // try removing from dictionary. If block doens't exist, function returns false and error printed
@@ -152,7 +178,13 @@ public class TwitterServer extends Thread {
                   }
 						      if (!vars.removeFromDictionary(ue)) {
 							       System.err.println("You never blocked " + ue.getUnblockee());
+                     continue;
 						      }
+
+          				// tick clocks, add the event to the partial log
+          				vars.tickClock(vars.getMySite().getId());
+          				vars.addToLog(new LogEvent(vars.getMySite().getId(), vars.getLocalClock(),e));
+
 					     }
 					// store our site variables to disk to maintain memory (includes blocking/unblocking)
 					UtilityFunctions.writeVars(vars);
@@ -182,7 +214,7 @@ public class TwitterServer extends Thread {
 	 * @return a TwitterEvent representing that command
 	 */
 	private Object parseCommand(String command) {
-		System.out.println("command was " + command);
+		// System.out.println("command was " + command);
 		String[] splitCommand = command.split(" ", 2);
 		TwitterEvent e;
 
@@ -190,6 +222,8 @@ public class TwitterServer extends Thread {
 			return "view";
     } else if (splitCommand[0].compareTo("viewlog") == 0){
       return "log";
+    } else if (splitCommand[0].compareTo("viewdict")==0){
+      return "dict";
 		} else if (splitCommand[0].compareTo("tweet") == 0) {
 			e = new Tweet(this.vars.getMySite(), splitCommand[1], new DateTime());
 		} else if (splitCommand[0].compareTo("block") == 0) {

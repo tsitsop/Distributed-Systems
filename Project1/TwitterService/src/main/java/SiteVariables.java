@@ -3,10 +3,11 @@ package main.java;
 import java.io.Serializable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicIntegerArray;
-
+import java.lang.Integer;
 import main.java.events.Block;
 import main.java.events.Unblock;
-
+import java.util.Iterator;
+import java.util.Collections;
 /**
  * This class represents the general and Wuu-Bernsein
  * variables that are stored at a site.
@@ -126,7 +127,7 @@ public class SiteVariables implements Serializable{
 		}
 
 		dictionary.put(e, "true");
-		System.out.println("Blocked " + e.getBlockee());
+		//System.out.println("Blocked " + e.getBlockee());
 		return true;
 	}
 
@@ -143,7 +144,7 @@ public class SiteVariables implements Serializable{
 		for (Block b : dictionary.keySet()) {
 			if ((b.getBlocker().equals(e.getUnblocker())) && (b.getBlockee().equals(e.getUnblockee()))) {
 				dictionary.remove(b);
-				System.out.println("Unblocked " + e.getUnblockee());
+				//System.out.println("Unblocked " + e.getUnblockee());
 				return true;
 			}
 		}
@@ -151,6 +152,21 @@ public class SiteVariables implements Serializable{
 		return false;
 	}
 
+	/*public void removeFromLog(LogEvent d)
+	{
+		Iterator<LogEvent> it = partialLog.keySet().iterator();
+		while (it.hasNext())
+		{
+			LogEvent e = it.next();
+			if (d.getId() == e.getId() && d.getLocalTime() == e.getLocalTime())
+			{
+				System.out.println("REMOVING");
+				System.out.println(partialLog.remove(d));
+			}
+		}
+		//System.out.println(partialLog.remove(it));
+	}
+*/
 	/**
 	 * Determines if a user is blocked or not
 	 *
@@ -160,10 +176,20 @@ public class SiteVariables implements Serializable{
 	 * 		   False otherwise
 	 */
 	public boolean isBlocked(Site s) {
-		System.out.println("Dictionary: " + dictionary.toString());
+		//System.out.println("Dictionary: " + dictionary.toString());
 
 		for (Block b : dictionary.keySet()) {
-			if (b.getBlockee().equals(s.getName())) {
+			if (b.getBlocker().getName().equals(mySite.getName()) && b.getBlockee().equals(s.getName())) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+	public boolean hasBlocked(String n1,String n2)
+	{
+		for (Block b : dictionary.keySet()) {
+			if (b.getBlocker().getName().equals(n1) && b.getBlockee().equals(n2)) {
 				return true;
 			}
 		}
@@ -216,6 +242,9 @@ public class SiteVariables implements Serializable{
 
 		int clockValue = getMatrixClockValue(mClock, n, id , e.getId());
 
+		//System.out.println("MatrixClock value: " + clockValue);
+		//System.out.println("Time of Event: " + e.getLocalTime());
+
 		if (clockValue >= e.getLocalTime()) {
 			val = true;
 		} else {
@@ -225,6 +254,27 @@ public class SiteVariables implements Serializable{
 		return val;
 	}
 
+
+	public static void printMatrixClock(AtomicIntegerArray mClock,int n)
+	{
+		System.out.printf("---");
+		for(int i=0;i<n;i++)
+		{
+			System.out.printf(Integer.toString(i)	);
+		}
+		System.out.printf("%n");
+		for(int i=0;i<n;i++)
+		{
+			System.out.printf(Integer.toString(i)+": ");
+			for(int j=0;j<n;j++)
+			{
+				System.out.printf(Integer.toString(getMatrixClockValue(mClock,n,i,j)));
+			}
+			System.out.printf("%n");
+		}
+
+
+	}
 
 	/**
 	 * Gets the value of some matrix clock
