@@ -11,9 +11,8 @@ public class Unblock extends TwitterEvent {
 
 	private Site unblocker;
 	private String unblockee;
-	private DateTime time;
-	
-	
+	//private DateTime time;
+
 	public Unblock(Site unblocker, String unblockee, DateTime time) {
 		this.eventType = "unblock";
 		this.unblocker = unblocker;
@@ -21,7 +20,7 @@ public class Unblock extends TwitterEvent {
 		this.time = time.toDateTime(DateTimeZone.UTC);
 	}
 	public Unblock() {}
-	
+
 	/* Getters */
 	public Site getUnblocker() {
 		return this.unblocker;
@@ -29,10 +28,10 @@ public class Unblock extends TwitterEvent {
 	public String getUnblockee() {
 		return this.unblockee;
 	}
-	public DateTime getTime() {
+	/*public DateTime getTime() {
 		return this.time;
-	}
-	
+	}*/
+
 	/* Setters */
 	public void setUnblocker(Site unblocker) {
 		this.unblocker = unblocker;
@@ -40,9 +39,9 @@ public class Unblock extends TwitterEvent {
 	public void setUnblockee(String unblockee) {
 		this.unblockee = unblockee;
 	}
-	public void setTime(DateTime time) {
+	/*public void setTime(DateTime time) {
 		// make sure to store all times as UTC to avoid timezone issues
 		this.time = time.toDateTime(DateTimeZone.UTC);
-	}
-	
+	}*/
+
 }

@@ -9,13 +9,13 @@ import java.io.ObjectOutputStream;
 
 /**
  * This class contains utility functions that don't belong in any specific class.
- * 
+ *
  * @author tsitsg
  *
  */
 public class UtilityFunctions {
 	private static final String varFilePath = "./src/main/resources/test";
-	
+
 	/**
 	 * Checks to see if system is recovering from failure or starting fresh.
 	 *
@@ -29,14 +29,14 @@ public class UtilityFunctions {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
+
 		return false;
 	}
-	
-	
+
+
 	/**
 	   * Write log, dictionary, local clock, matrix clock to disk
-	   * 
+	   *
 	   * @param		location of the file to write to
 	   */
 	  public static void writeVars(SiteVariables vars) {
@@ -50,17 +50,17 @@ public class UtilityFunctions {
 			i.printStackTrace();
 		  }
 	  }
-	  
+
 	  
 	  /**
 	   * Read log, dictionary, local clock, matrix clock from disk
-	   * 
+	   *
 	   * @param		location of the file to write to
 	   * @return	A UtilityVariables object containing the information
 	   */
 	  public static SiteVariables readVars(Site mySite) {
 	  	SiteVariables v = null;
-	  		
+
 		try {
 			FileInputStream fin = new FileInputStream(varFilePath + mySite.getName() + ".dat");
 			ObjectInputStream in = new ObjectInputStream(fin);
@@ -74,7 +74,7 @@ public class UtilityFunctions {
 			c.printStackTrace();
 			return null;
 		}
-		
+
 		return v;
 	  }
 }

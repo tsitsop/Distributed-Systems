@@ -11,8 +11,8 @@ public class Tweet extends TwitterEvent {
 
 	private Site user;
 	private String message;
-	private DateTime time;
-	
+	//private DateTime time;
+
 	public Tweet(Site user, String message, DateTime time) {
 		this.eventType = "tweet";
 		this.user = user;
@@ -20,7 +20,7 @@ public class Tweet extends TwitterEvent {
 		this.time = time.toDateTime(DateTimeZone.UTC);
 	}
 	public Tweet() {}
-	
+
 	/* Getters */
 	public Site getUser() {
 		return this.user;
@@ -28,11 +28,11 @@ public class Tweet extends TwitterEvent {
 	public String getMessage() {
 		return this.message;
 	}
-	public DateTime getTime() {
+	/*public DateTime getTime() {
 		// return the local time
 		return this.time.withZone(DateTimeZone.getDefault());
-	}
-	
+	}*/
+
 	/* Setters */
 	public void setUser(Site user) {
 		this.user = user;
@@ -40,9 +40,9 @@ public class Tweet extends TwitterEvent {
 	public void setMessage(String message) {
 		this.message = message;
 	}
-	public void setTime(DateTime time) {
+	/*public void setTime(DateTime time) {
 		// make sure to store all times as UTC to avoid timezone issues
 		this.time = time.toDateTime(DateTimeZone.UTC);
-	}
-	
+	}*/
+
 }
