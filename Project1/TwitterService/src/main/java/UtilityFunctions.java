@@ -3,6 +3,7 @@ package main.java;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -10,7 +11,7 @@ import java.io.ObjectOutputStream;
 /**
  * This class contains utility functions that don't belong in any specific class.
  *
- * @author tsitsg
+ * @author tsitsg,maurez
  *
  */
 public class UtilityFunctions {
@@ -32,6 +33,7 @@ public class UtilityFunctions {
 		return false;
 	}
 
+	//Checks if the file is empty
 	public static boolean isEmpty(String name)
 	{
 		File f = new File(varFilePath+name + ".dat").getAbsoluteFile();
@@ -53,7 +55,9 @@ public class UtilityFunctions {
 			out.writeObject(vars);
 			out.close();
 			fout.close();
-		  } catch(IOException i) {
+		  }catch(FileNotFoundException ex){
+				return;
+			}catch(IOException i) {
 			i.printStackTrace();
 		  }
 	  }
@@ -74,7 +78,13 @@ public class UtilityFunctions {
 			v = (SiteVariables) in.readObject();
 			in.close();
 			fin.close();
-		} catch(IOException i) {
+
+		}
+		catch(FileNotFoundException ex)
+		{
+			return null;
+		}
+		catch(IOException i) {
 			i.printStackTrace();
 			return null;
 		} catch(ClassNotFoundException c) {

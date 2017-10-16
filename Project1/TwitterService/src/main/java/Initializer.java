@@ -52,6 +52,7 @@ public class Initializer {
 
 
 	public static void main(String[] args) {
+		
 		// The path to the configuration file
 		String path = new File("src/main/resources/input.txt").getAbsolutePath();;
 		File input = new File(path);
@@ -103,7 +104,8 @@ public class Initializer {
 
 	        Thread listeningServerThread = new ListeningServer(vars);
 	        listeningServerThread.start();
-		} catch(IOException e) {
+		}
+		catch(IOException e) {
 			e.printStackTrace();
 		}
 	}

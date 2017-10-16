@@ -20,7 +20,7 @@ import main.java.events.Unblock;
  * This is the server that listens for user input. Once it receives input,
  * it will follow the command or declare it invalid and ask for another.
  *
- * @author tsitsg
+ * @author tsitsg, zrmaurer
  *
  */
 public class TwitterServer extends Thread {
@@ -63,18 +63,20 @@ public class TwitterServer extends Thread {
 					continue;
 				}
 
-				// if it was a view command, print the tweets
+				//The case of a view, log, or dict command
 				if (o.getClass().equals(String.class)) {
 
+          //if dict, print blocks in dictionary
           if(o.equals("dict"))
           {
             for (Block b : vars.getDictionary().keySet())
             {
-              System.out.println("Block: "+b.getBlocker().getName()+" - "+b.getBlockee());
+              System.out.println("("+b.getTime()+") "+"Block: "+b.getBlocker().getName()+" - "+b.getBlockee());
             }
             continue;
           }
 
+          //List needs to be sorted to diplay tweets in order
           ArrayList<LogEvent> sortedList = new ArrayList<LogEvent>(vars.getPartialLog().keySet()) ;
           Collections.sort(sortedList, new Comparator<LogEvent>()
           {
@@ -86,11 +88,14 @@ public class TwitterServer extends Thread {
 
           for (LogEvent le: sortedList)
           {
+            //gets TwitterEvent out of Log Event
             TwitterEvent te = le.getEvent();
+
+            //if event is tweet
             if (te.getEventType().compareTo("tweet") == 0)
             {
               Tweet t = (Tweet)te;
-            	// add blocked case
+            	// add blocked case, Log command prints regardless of blocked status
               boolean canView = false;
               if (!vars.hasBlocked(t.getUser().getName(),vars.getMySite().getName())||o.equals("log"))
               {
@@ -98,20 +103,22 @@ public class TwitterServer extends Thread {
               }
               if(canView)
               {
-                System.out.println("Tweet: "+t.getUser().getName()+" - "+t.getMessage());
+                System.out.println("("+t.getTime()+") "+"Tweet: "+t.getUser().getName()+" - "+t.getMessage());
               }
             }
+
             if (o.equals("log"))
             {
+              //log prints block and unblock events in
               if (te.getEventType().compareTo("block") == 0)
               {
                 Block b = (Block)te;
-                System.out.println("Block: "+b.getBlocker().getName()+" - "+b.getBlockee());
+                System.out.println("("+b.getTime()+") "+"Block: "+b.getBlocker().getName()+" - "+b.getBlockee());
               }
               else if (te.getEventType().compareTo("unblock") == 0)
               {
                 Unblock u = (Unblock)te;
-                System.out.println("Unblock: "+u.getUnblocker().getName()+" - "+u.getUnblockee());
+                System.out.println("("+u.getTime()+") "+"Unblock: "+u.getUnblocker().getName()+" - "+u.getUnblockee());
               }
             }
 
@@ -142,9 +149,7 @@ public class TwitterServer extends Thread {
 						}
 
 						// create NP
-						// np.clear();
 						np = SiteVariables.getNP(vars.getPartialLog(), vars.getMatrixClock(), i, sites.size());
-            //System.out.println("NP = " + np);
 						// create a TweetClient thread to send TwitterMessage(tweet,matrixClock,NP)
 						TwitterMessage message = new TwitterMessage((Tweet) e, vars.getMatrixClock(), np);
 						TweetClient tc = new TweetClient(message, sites.get(i));
@@ -153,7 +158,7 @@ public class TwitterServer extends Thread {
 				} else { // this means we are either blocking or unblocking.
 		          if (e.getEventType().compareTo("block") == 0) {
 						      Block be = (Block) e;
-						      // try adding to dictionary. If it exists, function returns false and error message printed
+						      // try adding to dictionary. If it exists or users invalid, function returns false and error message printed
                   if (!userExists(be.getBlockee())||!userExists(be.getBlocker().getName()))
                   {
                     System.err.println("One or more users does not exist");
@@ -164,13 +169,13 @@ public class TwitterServer extends Thread {
                      continue;
 						      }
 
-         				// tick clocks, add the event to the partial log
+         				// tick clocks, add the event to the partial log (doesnt execute if command is invalid)
         				vars.tickClock(vars.getMySite().getId());
         				vars.addToLog(new LogEvent(vars.getMySite().getId(), vars.getLocalClock(),e));
 
 					     } else {
 						      Unblock ue = (Unblock) e;
-						      // try removing from dictionary. If block doens't exist, function returns false and error printed
+						      // try removing from dictionary. If block doens't exist or users invalid, function returns false and error printed
                   if (!userExists(ue.getUnblocker().getName())||!userExists(ue.getUnblockee()))
                   {
                     System.err.println("One or more users does not exist");
@@ -181,7 +186,7 @@ public class TwitterServer extends Thread {
                      continue;
 						      }
 
-          				// tick clocks, add the event to the partial log
+          				// tick clocks, add the event to the partial log (doesnt execute if command is invalid)
           				vars.tickClock(vars.getMySite().getId());
           				vars.addToLog(new LogEvent(vars.getMySite().getId(), vars.getLocalClock(),e));
 

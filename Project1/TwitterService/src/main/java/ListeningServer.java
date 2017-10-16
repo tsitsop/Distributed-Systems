@@ -45,35 +45,30 @@ public class ListeningServer extends Thread{
 		while (true) {
 			try {
 				// wait for a tweet to come in
-				//System.out.println("We are waiting for tweet to be received");
+
 				Socket clientSocket = serverSocket.accept();
-				//System.out.println("We have received a connection");
+
 
 				// set up input streams
 				inFromClient =  new ObjectInputStream(clientSocket.getInputStream());
 
 				// read in the tweet
-				//System.out.println("We are waiting for the tweet to come through");
+
 		        m = (TwitterMessage) inFromClient.readObject();
 		        inFromClient.close();
 
 		        // print the contents of the tweet
-				//System.out.println("We have received the tweet! it came from " + m.getTweet().getUser().getIp() + ":" + m.getTweet().getUser().getPort() + "and says the following:" );
-				System.out.println("Recieved: "+m.getTweet().getMessage());
-				//System.out.println("It was sent at " + m.getTweet().getTime());
-				//System.out.println("\n\nThe partial log looks like the following:\n" + m.getNp().toString());
 
-				//System.out.println(m.getNp());
+				System.out.println("Recieved: "+m.getTweet().getMessage());
 
 				// create newEvents log
 				ConcurrentHashMap<LogEvent, String> np = m.getNp();
 				ConcurrentHashMap<LogEvent, String> newEvents = SiteVariables.getNP(np, vars.getMatrixClock(), vars.getMySite().getId(), vars.getNumProcesses());
-				// truncate log
-
 
 
 
 				// update the dictionary with block/unblock events
+				// Must be done in order to ensure unblocks cancel blocks
 				ArrayList<LogEvent> sortedList = new ArrayList<LogEvent>(newEvents.keySet()) ;
 				Collections.sort(sortedList, new Comparator<LogEvent>()
 				{
@@ -94,22 +89,14 @@ public class ListeningServer extends Thread{
 							vars.removeFromDictionary((Unblock)le.getEvent());
 						}
 					}
-				// check block/unblocks in NP and adjust accordingly
+
 
 
 				// update our entire matrix clockmySite
 				int numP = vars.getNumProcesses();
 				int myID = vars.getMySite().getId();
 				int messID = m.getTweet().getUser().getId();
-				//
-				//System.out.println("Clock ------- ");
-				//vars.printMatrixClock(vars.getMatrixClock(),numP);
-				//System.out.println("--------------");
 
-
-				//System.out.println("Message Clock-");
-				//vars.printMatrixClock(m.getMatrixClock(),numP);
-				//System.out.println("--------------");
 
 					for(int k = 0;k<vars.getNumProcesses();k++)
 					{
@@ -128,14 +115,6 @@ public class ListeningServer extends Thread{
 								vars.getMatrixClockValue(m.getMatrixClock(),numP,k,l))));
 						}
 					}
-					//System.out.println("New Clock ----");
-					//vars.printMatrixClock(vars.getMatrixClock(),numP);
-					//System.out.println("--------------");
-
-					/*	for	k=1…N
-										Tj (j,k)	=	max	(	Tj(j,k)	,	Ti(i,k)	)
-							for	k=1…N,	l	=	1…N
-										Tj (k,l)	=	max	(	Tj (k,l)	,	Ti(k,l)	)*/
 
 			// add newEvents to log
 			vars.getPartialLog().putAll(newEvents);
@@ -158,7 +137,7 @@ public class ListeningServer extends Thread{
 				{
 					if (!SiteVariables.hasRec(vars.getMatrixClock(),le,i,vars.getNumProcesses()))
 					{
-						//System.out.println("not remove "+le);
+
 						to_remove = false;
 						break;
 					}
@@ -166,8 +145,7 @@ public class ListeningServer extends Thread{
 
 				if (to_remove)
 				{
-					//System.out.println("Will remove "+le);
-				  //vars.removeFromLog(le);
+
 					vars.getPartialLog().remove(le);
 				}
 

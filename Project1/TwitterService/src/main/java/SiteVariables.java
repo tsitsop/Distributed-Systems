@@ -127,7 +127,7 @@ public class SiteVariables implements Serializable{
 		}
 
 		dictionary.put(e, "true");
-		//System.out.println("Blocked " + e.getBlockee());
+
 		return true;
 	}
 
@@ -144,7 +144,6 @@ public class SiteVariables implements Serializable{
 		for (Block b : dictionary.keySet()) {
 			if ((b.getBlocker().equals(e.getUnblocker())) && (b.getBlockee().equals(e.getUnblockee()))) {
 				dictionary.remove(b);
-				//System.out.println("Unblocked " + e.getUnblockee());
 				return true;
 			}
 		}
@@ -152,21 +151,6 @@ public class SiteVariables implements Serializable{
 		return false;
 	}
 
-	/*public void removeFromLog(LogEvent d)
-	{
-		Iterator<LogEvent> it = partialLog.keySet().iterator();
-		while (it.hasNext())
-		{
-			LogEvent e = it.next();
-			if (d.getId() == e.getId() && d.getLocalTime() == e.getLocalTime())
-			{
-				System.out.println("REMOVING");
-				System.out.println(partialLog.remove(d));
-			}
-		}
-		//System.out.println(partialLog.remove(it));
-	}
-*/
 	/**
 	 * Determines if a user is blocked or not
 	 *
@@ -257,6 +241,7 @@ public class SiteVariables implements Serializable{
 
 	public static void printMatrixClock(AtomicIntegerArray mClock,int n)
 	{
+		//For debug use, prints Matrix Clock in a readable format
 		System.out.printf("---");
 		for(int i=0;i<n;i++)
 		{
@@ -277,7 +262,7 @@ public class SiteVariables implements Serializable{
 	}
 
 	/**
-	 * Gets the value of some matrix clock
+	 * Gets the value of some matrix clock (using function to flatten)
 	 *
 	 * @param mc 		 Matrix clock of interest
 	 * @param n 		 Number of sites
