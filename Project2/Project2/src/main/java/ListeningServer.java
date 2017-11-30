@@ -50,8 +50,10 @@ public class ListeningServer extends Thread{
 				inFromClient =  new ObjectInputStream(clientSocket.getInputStream());
 
 				// read in the message
-		        m = (PaxosMessage) inFromClient.readObject();
+				m = (PaxosMessage) inFromClient.readObject();
 		        inFromClient.close();
+
+				System.out.println("got a message!!");
 
 		        // determine message type and run corresponding function
 		        if (m instanceof Prepare) {

@@ -85,7 +85,7 @@ public class Initializer {
 		} else {
 			System.out.println("Recovering from a failure!");
 			// if kill program before entering input, file is empty
-			if (UtilityFunctions.isEmpty(mySite.getName())) { 
+			if (UtilityFunctions.isEmpty(mySite.getName())) {
 				vars = new SiteVariables(sites.size(), mySite);
 			} else {
 				vars = UtilityFunctions.readVars(mySite);

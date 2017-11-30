@@ -22,6 +22,11 @@ public class Prepare extends PaxosMessage {
 	 * @param receiverSite The site who received the Propose message
 	 */
 	public void onReceive(SiteVariables receiverSite) {
+		// if haven't created a log entry at this index yet, need to make new one.
+		//  I think??
+		if (receiverSite.getPaxosValues().size()-1 < logIndex) {
+			
+		}
 		SynodValues synodValues = receiverSite.getPaxosValues().get(logIndex);
 
 		if (this.proposalNum > synodValues.getMaxPrepare()) {

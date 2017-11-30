@@ -126,22 +126,27 @@ public class TwitterServer extends Thread {
 				
 				
 				// if you are leader, can skip prepare promise
-				if (vars.getPaxosValues().get(vars.getLogSize()-1).getLeader() == vars.getMySite().getId()) {
-					// create Accept message with proposal number 1
-					message = new Accept(vars.getMySite(), vars.getLogSize(), 1, e);
-					
-					// send message to all followers
-					for (Site site : sites) {
-						tc = new TweetClient(message, site);
-						tc.start();
+				if (vars.getLogSize() != 0) {
+					if (vars.getPaxosValues().get(vars.getLogSize()-1).getLeader() == vars.getMySite().getId()) {
+						System.out.println("yo");
+						// create Accept message with proposal number 1
+						message = new Accept(vars.getMySite(), vars.getLogSize(), 1, e);
+						
+						// send message to all followers
+						for (Site site : sites) {
+							tc = new TweetClient(message, site);
+							tc.start();
+						}
 					}
-				} else {
+				}  else {
 					synodValues.setMyProposal(e);
 					// create Prepare message with initial proposal number 1
 					message = new Prepare(vars.getMySite(), vars.getLogSize(), 1);
 					
 					// send message to all followers
 					for (Site site : sites) {
+						System.out.println("sending prepare to" + site.toString() + " sites");
+
 						tc = new TweetClient(message, site);
 						tc.start();
 					}
