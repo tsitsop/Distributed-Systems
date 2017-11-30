@@ -90,8 +90,8 @@ public class Initializer {
 			} else {
 				vars = UtilityFunctions.readVars(mySite);
 			}
-			
-			// run full Paxos for each log entry
+
+			// run full Paxos for each log entry - WITH DUMMY VALUES
 		}
 
 		// Start 2 servers:

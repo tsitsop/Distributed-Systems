@@ -57,15 +57,7 @@ public class Ack extends PaxosMessage {
 				// restarting so empty our Acks list
 				receiverSite.getPaxosValues().get(logIndex).setAcks(new CopyOnWriteArrayList<>());
 				
-				// create Prepare message with initial proposal number 1
-				Prepare message = new Prepare(receiverSite.getMySite(), receiverSite.getLogSize(), 1);
-				
-				// send message to all followers
-				TweetClient tc;
-				for (Site site : sites) {
-					tc = new TweetClient(message, site);
-					tc.start();
-				}
+				// do nothing?
 			}
 		}	
 	}

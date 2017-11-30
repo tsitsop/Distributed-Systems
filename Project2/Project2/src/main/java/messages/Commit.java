@@ -18,6 +18,9 @@ public class Commit extends PaxosMessage {
 	public void onReceive(SiteVariables receiverSite) {
 		// add event to log
 		receiverSite.addToLog(v);
+		
+		// set the leader for this entry to sender
+		receiverSite.getPaxosValues().get(logIndex).setLeader(sender.getId());;
 	}
 
 }
