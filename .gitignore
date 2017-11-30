@@ -1,5 +1,6 @@
 # ignore all metadata
 */.metadata
+*/*/.metadata
 # ignore all recommenders
 */.recommenders
 # ignore .settings

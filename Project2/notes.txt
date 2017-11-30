@@ -1,0 +1,63 @@
+config file - same as before
+	- IP, ports, names
+
+Write-ahead log:
+	- log entry: single event - tweet, block, unblock
+	- fully replicated by Paxos
+	- store in stable storage
+
+Paxos
+	Initiially:
+		- no leader
+		- use full synod for first log entry
+	- single leader
+		- initially no leader
+		- winner of previous slot is leader - can skip "prepare-promise"
+		- this guy remains leader until creashes
+		- after crash, go back to full synod
+	- if don't know leader, use full synod to propose vals
+
+- save timeline, blocked user info
+	- timeline should only contain tweets viewable by user - need to add/remove based on blocking
+	- not stored in stable storage - must recreate on recovery
+
+Recovery
+	- on recovery, execute full paxos for every log entry
+
+
+
+MODIFICATIONS to existing classes:
+
+  Initializer.java
+  	- when recovering from failure we must run full paxos on all log entries
+
+  ListeningServer.java
+  	- need to check for type of incoming message and add cases for the different ones
+  	  - propose(int)
+  	  - promise(int, LogEvent)
+  	  - accept(int, LogEvent)
+  	  - ack(int, LogEvent)
+  	  - commit(LogEvent)
+  	- make classes for each message
+  	- each time, would we run a check then spawn a thread to send the next message?
+
+  TwitterServer.java
+  	- want to clean it up a bit - make some functions to shorten our loop
+  	- when tweeting, need to run paxos
+  	  - spawn thread to send initial message, then let listeningServer do rest?
+
+  SiteVariables.java
+  	- create functions to add or modify log entries
+    - do the blocking functions belong here or in utilityvars?
+	    - fix isBlocked
+	    - when would we use hasBlocked?
+
+
+
+So...
+
+User1 enters tweet hello
+	TweetServer1 parses command, spawns a PaxosThread to run paxos
+	  PaxosThread1 initiates synod algo - full or partial depending on leader - then closes
+	ListeningServer2 gets msg from PaxosThread1, parse msg, spawn PaxosThread2
+	  PaxosThread2 does whatever, sends msg to ListeningServer1
