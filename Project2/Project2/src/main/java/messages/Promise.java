@@ -16,10 +16,10 @@ public class Promise extends PaxosMessage {
 	private Integer logIndex;
 	private Integer accNum;
 	private TwitterEvent accVal;
-	
+
 	public Promise(Site sender, Integer logIndex, Integer accNum, TwitterEvent accVal) {
 		super(sender);
-		
+
 		this.logIndex = logIndex;
 		this.accNum = accNum;
 		this.accVal = accVal;
@@ -54,6 +54,7 @@ public class Promise extends PaxosMessage {
 
 			ValContainer<Boolean> success = new ValContainer<>(false);
 
+			/*
 			timer.schedule(new TimerTask() {
 				@Override
 				public void run() {
@@ -61,25 +62,38 @@ public class Promise extends PaxosMessage {
 					if (System.currentTimeMillis()-time > 5000) {
 						this.cancel();
 					}
-					
+
 					// if we have received a majority, we can continue with this execution
 					if (receiverSite.getPaxosValues().get(logIndex).majorityPromises(sites.size())) {
 						this.cancel();
 						success.setVal(true);
 					}
 				}
-			}, time + 1000, 500);	
-		
+			}, time + 1000, 500);
+			*/
+
+			while(true)
+			{
+				if (System.currentTimeMillis()-time > 5000) {
+					break;
+				}
+
+				if (receiverSite.getPaxVal(logIndex).majorityPromises(sites.size())) {
+					success.setVal(true);
+					break;
+				}
+			}
+
 			// if we successfully received a majority of responses, send accepts
 			if (success.getVal()) {
 				this.sendAccepts(receiverSite, sites);
 			} else {
 				// restarting so empty our Promises list
 				receiverSite.getPaxosValues().get(logIndex).setPromises(new CopyOnWriteArrayList<>());
-				
+
 				// create Prepare message with initial proposal number 1
 				Prepare message = new Prepare(receiverSite.getMySite(), receiverSite.getLogSize(), 1);
-				
+
 				// send message to all followers
 				TweetClient tc;
 				for (Site site : sites) {
@@ -87,9 +101,9 @@ public class Promise extends PaxosMessage {
 					tc.start();
 				}
 			}
-		}	
+		}
 	}
-	
+
 	/**
 	 * Send accept message to all acceptors if have received majority promises
 	 * @param receiverSite the site that received the promises - the current site
@@ -97,10 +111,10 @@ public class Promise extends PaxosMessage {
 	 */
 	public void sendAccepts(SiteVariables receiverSite, List<Site> sites) {
 		SynodValues synodValues = receiverSite.getPaxosValues().get(logIndex);
-		
+
 		int largestAccNum = 0;
 		TwitterEvent bestValue = null;
-		
+
 		// find best value to send
 		for (Promise promise : synodValues.getPromises()) {
 			if (promise.getAccNum() > largestAccNum) {
@@ -110,7 +124,7 @@ public class Promise extends PaxosMessage {
 				}
 			}
 		}
-		
+
 		if (bestValue == null) {
 			bestValue = synodValues.getMyProposal();
 		}
@@ -120,6 +134,6 @@ public class Promise extends PaxosMessage {
 		for (Site site : sites) {
 			TweetClient tc = new TweetClient(message, site);
 			tc.start();
-		}			
+		}
 	}
 }

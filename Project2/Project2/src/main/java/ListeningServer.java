@@ -58,8 +58,8 @@ public class ListeningServer extends Thread{
 		        // determine message type and run corresponding function
 		        if (m instanceof Prepare) {
 		        	System.out.println("Received Prepare message from " + m.getSender());
-		        	Prepare pm = (Prepare) m;		        	
-		        	pm.onReceive(vars);	
+		        	Prepare pm = (Prepare) m;
+		        	pm.onReceive(vars);
 		        } else if (m instanceof Promise) {
 		        	System.out.println("Received Propose message from " + m.getSender());
 		        	Promise pm = (Promise) m;
@@ -80,7 +80,7 @@ public class ListeningServer extends Thread{
 			} catch (IOException e) {
 				e.printStackTrace();
 			} catch(ClassNotFoundException c) {
-		         System.out.println("Tweet class not found");
+		         System.out.println("Message class not found");
 		         c.printStackTrace();
 		         return;
 		      }

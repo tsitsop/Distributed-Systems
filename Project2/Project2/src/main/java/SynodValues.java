@@ -9,7 +9,7 @@ import main.java.messages.Promise;
 
 public class SynodValues implements Serializable{
 	private static final long serialVersionUID = 1L;
-	
+
 	private Integer accNum;
 	private TwitterEvent accVal;
 	private Integer maxPrepare;
@@ -29,7 +29,7 @@ public class SynodValues implements Serializable{
 		promises = new CopyOnWriteArrayList<>();
 		acks = new CopyOnWriteArrayList<>();
 	}
-	
+
 	/* Getters */
 	public Integer getAccNum() {
 		return accNum;
@@ -55,7 +55,7 @@ public class SynodValues implements Serializable{
 	public CopyOnWriteArrayList<Ack> getAcks() {
 		return acks;
 	}
-	
+
 	/* Setters */
 	public void setAccNum(Integer accNum) {
 		this.accNum = accNum;
@@ -89,20 +89,20 @@ public class SynodValues implements Serializable{
 	 */
 	public int addPromise(Promise promise) {
 		promises.add(promise);
-		
+
 		return promises.size()-1;
 	}
-	
+
 	/**
 	 * Add ack to list of received acks
 	 * @param ack
 	 */
 	public int addAck(Ack ack) {
 		acks.add(ack);
-		
+
 		return acks.size()-1;
 	}
-	
+
 	/**
 	 * Check if have received promises from majority of sites
 	 * @param numSites
@@ -112,10 +112,10 @@ public class SynodValues implements Serializable{
 		if (promises.size() > numSites/2) {
 			return true;
 		}
-		
+
 		return false;
 	}
-	
+
 	/**
 	 * Check if have received acks from majority of sites
 	 * @param numSites
@@ -125,10 +125,10 @@ public class SynodValues implements Serializable{
 		if (acks.size() > numSites/2) {
 			return true;
 		}
-		
+
 		return false;
 	}
-	
+
 
 
 }
