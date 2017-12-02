@@ -64,46 +64,11 @@ public class TwitterServer extends Thread {
 				//The case of a view or log command
 				if (o.getClass().equals(String.class)) {
 					if (o.equals("view")) {
-						 /*
-						   for each log entry:
-							 if log entry is tweet
-								if tweet from user who blocked you
-									continue
-								else
-									print user, tweet, time
-							once printed everything: continue
-						
-						 for (LogEvent le: sortedList) {
-						    	//gets TwitterEvent out of Log Event
-						    	TwitterEvent te = le.getEvent();
-
-						    	//if event is tweet
-						    	if (te.getEventType().compareTo("tweet") == 0) {
-						    		Tweet t = (Tweet)te;
-						    		// add blocked case, Log command prints regardless of blocked status
-						    		boolean canView = false;
-						    		if (!vars.hasBlocked(t.getUser().getName(), vars.getMySite().getName()) || o.equals("log")) {
-						    			canView = true;
-						    		}
-		  
-						    		if (canView) {
-						    			System.out.println("("+t.getTime()+") "+"Tweet: "+t.getUser().getName()+" - "+t.getMessage());
-						    		}
-						    	}
-
-						    	if (o.equals("log")) {
-						    		//log prints block and unblock events in
-						    		if (te.getEventType().compareTo("block") == 0) {
-						    			Block b = (Block)te;
-						    			System.out.println("("+b.getTime()+") "+"Block: "+b.getBlocker().getName()+" - "+b.getBlockee());
-						    		} else if (te.getEventType().compareTo("unblock") == 0) {
-						    			Unblock u = (Unblock)te;
-						    			System.out.println("("+u.getTime()+") "+"Unblock: "+u.getUnblocker().getName()+" - "+u.getUnblockee());
-						    		}
-						    	}
-						    } */
+						for (Tweet t : vars.getTimeline()) {
+							System.out.println(t.toString());
+						}
 					} else if (o.equals("log")) {
-						// print each log entry
+						vars.printWriteAheadLog();
 					}
 					
 					continue;
@@ -113,13 +78,43 @@ public class TwitterServer extends Thread {
 				e = (TwitterEvent) o;
 
 				if (e.getEventType().compareTo("block") == 0) {
-					// check if block is valid
+					if (vars.isBlocked(((Block) e).getBlockee())) {
+						System.out.println("This user is already blocked");
+						continue;
+					}
+					if (((Block)e).getBlockee().equals(vars.getMySite().getName()))
+					{
+						System.out.println("Hey, can't block yourself!");
+						continue;
+					}
+					String n = ((Block)e).getBlockee();
+					boolean valid = false;
+					for (Site s : sites)
+					{
+						if (s.getName().equals(n))
+						{
+							valid = true;
+							break;
+						}
+					}
+					if (!valid)
+					{
+						System.out.println("This user does not exist");
+						continue;
+					}
 				} else if (e.getEventType().compareTo("unblock") == 0) {
-					// check if unblock is valid
+					if (!vars.isBlocked(((Unblock) e).getUnblockee())) {
+						System.out.println("This user is not blocked");
+						continue;
+					}
+					if (((Unblock) e).getUnblockee().equals(vars.getMySite().getName()))
+					{
+						System.out.println("Hey, can't unblock yourself!");
+						continue;
+					}
 				}
 				
 				PaxosMessage message;
-				TweetClient tc;
 				
 				// declare initial synodValues. since it is first
 				SynodValues synodValues = new SynodValues();
@@ -129,30 +124,30 @@ public class TwitterServer extends Thread {
 				if (vars.getLogSize() != 0) {
 					if (vars.getPaxVal(vars.getLogSize()-1).getLeader() == vars.getMySite().getId()) {
 						System.out.println("skipping prepare-promise");
-						// create Accept message with proposal number 1
+						// create Accept message with proposal number 
 						message = new Accept(vars.getMySite(), vars.getLogSize(), 1, e);
 						
-						// send message to all followers
-						for (Site site : sites) {
-							tc = new TweetClient(message, site);
-							tc.start();
-						}
+						SendMessageThread mt = new SendMessageThread(vars, message, sites);
+						mt.start();
+						continue;
 					}
-				}  else {
-					// update Paxos log
-					synodValues.setMyProposal(e);
-					synodValues.setMyProposalNum(1);
-					vars.modifyPaxosValues(vars.getLogSize(), synodValues);
-
-					
-					// create Prepare message with initial proposal number 1
-					message = new Prepare(vars.getMySite(), vars.getLogSize()-1, 1);
-					
-
-					
-					SendMessageThread dmt = new SendMessageThread(vars, message, sites);
-					dmt.start();
 				}
+
+				// if you aren't the leader, do this
+				// update Paxos log
+				synodValues.setMyProposal(e);
+				synodValues.setMyProposalNum(1);
+				vars.modifyPaxosValues(vars.getLogSize(), synodValues);
+
+				
+				// create Prepare message with initial proposal number 1
+				message = new Prepare(vars.getMySite(), vars.getLogSize()-1, 1);
+				
+
+				
+				SendMessageThread dmt = new SendMessageThread(vars, message, sites);
+				dmt.start();
+			
 				
 				// store our site variables to disk to maintain memory (includes blocking/unblocking)
 				UtilityFunctions.writeVars(vars);
@@ -195,8 +190,6 @@ public class TwitterServer extends Thread {
 			return "view";
 		} else if (splitCommand[0].compareTo("viewlog") == 0){
 			return "log";
-		} else if (splitCommand[0].compareTo("viewdict")==0){
-			return "dict";
 		} else if (splitCommand[0].compareTo("tweet") == 0) {
 			e = new Tweet(this.vars.getMySite(), splitCommand[1], new DateTime());
 		} else if (splitCommand[0].compareTo("block") == 0) {

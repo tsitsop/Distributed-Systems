@@ -9,11 +9,9 @@ import main.java.TweetClient;
 
 public class Prepare extends PaxosMessage {
 	private Integer proposalNum;
-	private Integer logIndex;
 
 	public Prepare(Site sender, Integer logIndex, Integer proposalNum) {
-		super(sender);
-		this.logIndex = logIndex;
+		super(sender, logIndex);
 		this.proposalNum = proposalNum;
 	}
 
@@ -49,15 +47,8 @@ public class Prepare extends PaxosMessage {
 	public Integer getProposalNum() {
 		return proposalNum;
 	}
-	public Integer getLogIndex() {
-		return logIndex;
-	}
 
 	public void setProposalNum(Integer proposalNum) {
 		this.proposalNum = proposalNum;
 	}
-	public void setLogIndex(Integer logIndex) {
-		this.logIndex = logIndex;
-	}
-
 }

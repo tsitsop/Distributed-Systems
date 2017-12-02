@@ -12,21 +12,16 @@ import main.java.ValContainer;
 import main.java.events.TwitterEvent;
 
 public class Promise extends PaxosMessage {
-	private Integer logIndex;
 	private Integer accNum;
 	private TwitterEvent accVal;
 
 	public Promise(Site sender, Integer logIndex, Integer accNum, TwitterEvent accVal) {
-		super(sender);
+		super(sender, logIndex);
 
-		this.logIndex = logIndex;
 		this.accNum = accNum;
 		this.accVal = accVal;
 	}
 
-	public Integer getLogIndex() {
-		return logIndex;
-	}
 	public Integer getAccNum() {
 		return accNum;
 	}
@@ -34,9 +29,6 @@ public class Promise extends PaxosMessage {
 		return accVal;
 	}
 
-	public void setLogIndex(Integer logIndex) {
-		this.logIndex = logIndex;
-	}
 	public void setAccNum(Integer accNum) {
 		this.accNum = accNum;
 	}

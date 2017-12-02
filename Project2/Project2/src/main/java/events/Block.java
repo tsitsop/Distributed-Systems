@@ -2,6 +2,7 @@ package main.java.events;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.joda.time.format.DateTimeFormat;
 
 import main.java.Site;
 
@@ -35,6 +36,12 @@ public class Block extends TwitterEvent {
 	}
 	public void setBlockee(String blockee) {
 		this.blockee = blockee;
+	}
+
+
+	@Override
+	public String toString() {
+		return "(" + time.toString(DateTimeFormat.shortDateTime()) + ") " + blocker.getName() + " blocked " + blockee;
 	}
 
 }

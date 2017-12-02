@@ -13,19 +13,27 @@ import main.java.ValContainer;
 import main.java.events.TwitterEvent;
 
 public class Ack extends PaxosMessage {
-	private Integer logIndex;
 	private Integer accNum;
 	private TwitterEvent accVal;
 	
 	public Ack(Site sender, Integer logIndex, Integer accNum, TwitterEvent accVal) {
-		super(sender);
+		super(sender, logIndex);
 		
-		this.logIndex = logIndex;
 		this.accNum = accNum;
 		this.accVal = accVal;
 	}
 	
+	public TwitterEvent getAccVal() {
+		return this.accVal;
+	} 
+
+
 	public void onReceive(SiteVariables receiverSite, List<Site> sites) {
+		// add ack value to list of acks received
+		receiverSite.getPaxVal(logIndex).addAck(this);
+		
+		
+		
 		// if this is the first promise received, set a timer to wait and see if have received from majority
 		//   - will first run 1 second after the first promise is received and then every 1/2 second
 		if (receiverSite.getPaxosValues().get(logIndex).addAck(this) == 0) {

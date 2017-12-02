@@ -3,6 +3,8 @@ package main.java;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import javax.swing.plaf.multi.MultiButtonUI;
+
 import main.java.events.TwitterEvent;
 import main.java.messages.Accept;
 import main.java.messages.Ack;
@@ -10,6 +12,8 @@ import main.java.messages.Commit;
 import main.java.messages.PaxosMessage;
 import main.java.messages.Prepare;
 import main.java.messages.Promise;
+import main.java.messages.RecoveryInfo;
+import main.java.messages.RecoveryRequest;
 
 
 public class SendMessageThread implements Runnable{
@@ -30,10 +34,8 @@ public class SendMessageThread implements Runnable{
         if (m instanceof Prepare) {
         	Prepare pm = (Prepare) m;
         	int logIndex = pm.getLogIndex();
-        	//System.out.println(logIndex);
-    		//System.out.println("Proposal: "+vars.getPaxVal(vars.getLogSize()-1).getMyProposalNum());
-    		//System.out.println("Proposal: "+vars.getPaxVal(logIndex).getMyProposalNum());
-        	// send message to all followers
+			
+			// send message to all sites
          	TweetClient tc;
         	for (Site site : sites) {
              	System.out.println("Sending Prepare message to " + site.getName());
@@ -59,7 +61,10 @@ public class SendMessageThread implements Runnable{
 			// if we successfully received a majority of responses, send accepts
 			if (success) {
 				System.out.println("We got a majority response for promises");
-				this.sendAccepts(vars, sites, logIndex);
+				
+				Accept message = this.createAccept(vars, sites, logIndex);
+				SendMessageThread mt = new SendMessageThread(vars, message, sites);
+				mt.start();		
 			} else {
 				System.err.println("failed to get majority response");
 				
@@ -67,29 +72,71 @@ public class SendMessageThread implements Runnable{
 				vars.getPaxosValues().get(logIndex).setPromises(new CopyOnWriteArrayList<>());
 				
 				// create Prepare message with initial proposal number 1
-				Prepare newMessage = new Prepare(vars.getMySite(), vars.getLogSize(), ((Prepare) m).getProposalNum()+1);
+				Prepare newMessage = new Prepare(vars.getMySite(), vars.getLogSize(), pm.getProposalNum()+1);
 
 				SendMessageThread mt = new SendMessageThread(vars, newMessage, sites);
 				mt.start();
 			}
 
-        } else if (m instanceof Promise) {
-        	System.out.println("Received Promise message from " + m.getSender());
-        	Promise pm = (Promise) m;
-        	pm.onReceive(vars, sites);
         } else if (m instanceof Accept) {
-        	System.out.println("Received Accept message from " + m.getSender());
         	Accept am = (Accept) m;
-        	am.onReceive(vars);
-        } else if (m instanceof Ack) {
-        	System.out.println("Received Ack message from " + m.getSender());
-        	Ack am = (Ack) m;
-        	am.onReceive(vars, sites);
-        } else if (m instanceof Commit) {
-        	System.out.println("Received Commit message from " + m.getSender());
-        	Commit cm = (Commit) m;
-        	cm.onReceive(vars);
-        }
+
+			// send message to all sites
+			TweetClient tc;
+			for (Site site : sites) {
+				System.out.println("Sending Accept message to " + site.getName());
+				tc = new TweetClient(am, site);
+				tc.start();
+			}
+			
+			// start timer
+			long time = System.currentTimeMillis();
+			boolean success = false;
+
+			while(true) {
+				if (System.currentTimeMillis()-time > 5000) {
+					break;
+				}
+
+				if (vars.getPaxVal(am.getLogIndex()).majorityAcks(sites.size())) {
+					success = true;
+					break;
+				}
+			}
+			
+			// if we successfully received a majority of responses, send accepts
+			if (success) {
+				System.out.println("We got a majority response for Acks");
+			
+				// send Commit messages to all sites
+				Commit message = new Commit(vars.getMySite(), am.getLogIndex(), am.getV());
+				for (Site site : sites) {
+					System.out.println("Sending Commit message to " + site.getName());
+					tc = new TweetClient(message, site);
+					tc.start();
+				}
+			} else {
+				System.err.println("failed to get majority Ack responses. done.");
+			}
+        } else if (m instanceof RecoveryRequest) {
+			
+			int numSites = sites.size();
+			int myId = vars.getMySite().getId();
+			int receivingId = 0;
+			
+			if (myId == numSites-1) {
+				receivingId = 0;
+			} else {
+				receivingId = myId + 1;
+			}
+
+			Site dest = sites.get(receivingId);
+			System.out.println("Sending Recovery message to " + dest.getName());
+			
+			TweetClient tc = new TweetClient((RecoveryRequest) m, dest);
+			tc.start();
+		}
+
 	}
 
 	/**
@@ -107,7 +154,7 @@ public class SendMessageThread implements Runnable{
 	 * @param receiverSite the site that received the promises - the current site
 	 * @param sites
 	 */
-	public void sendAccepts(SiteVariables receiverSite, List<Site> sites, int logIndex) {
+	public Accept createAccept(SiteVariables receiverSite, List<Site> sites, int logIndex) {
 		SynodValues synodValues = receiverSite.getPaxVal(logIndex);
 
 		int largestAccNum = 0;
@@ -115,7 +162,6 @@ public class SendMessageThread implements Runnable{
 
 		// find best value to send
 		for (Promise promise : synodValues.getPromises()) {
-			System.out.println("AccNum: "+promise.getAccNum()+"AccVal:"+promise.getAccVal());
 			if (promise.getAccNum() > largestAccNum) {
 				largestAccNum = promise.getAccNum();
 				if (bestValue != null) {
@@ -126,18 +172,11 @@ public class SendMessageThread implements Runnable{
 
 		if (bestValue == null) {
 			bestValue = synodValues.getMyProposal();
-			//					
-			
 		}
 
-		// send Accept message to everyone
-		System.out.println("Best Value: "+bestValue);
 		Accept message = new Accept(receiverSite.getMySite(), logIndex, synodValues.getMyProposalNum(), bestValue);
-		for (Site site : sites) {
-			System.out.println("Sending Accept message to " + site.getName());
-			TweetClient tc = new TweetClient(message, site);
-			tc.start();
-		}
+
+		return message;
 	}
 
 }

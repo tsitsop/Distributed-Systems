@@ -1,10 +1,16 @@
 package main.java;
 
 import java.io.Serializable;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import main.java.events.Block;
+import main.java.events.Unblock;
 import main.java.events.TwitterEvent;
+import main.java.events.Tweet;
+import java.util.List;
+import java.util.ArrayList;
+
 /**
  * This class represents the variables that are stored
  * at a site.
@@ -17,10 +23,12 @@ public class SiteVariables implements Serializable{
 
 	private int numProcesses;
 	private Site mySite;
+	private List<Site> sites;
 
 	private CopyOnWriteArrayList<TwitterEvent> writeAheadLog;
 	// array to mirror writeAheadLog, storing only accNum, accVal, maxPrepare, leader - maybe change to list<hashmap>
 	private CopyOnWriteArrayList<SynodValues> paxosValues;
+	private CopyOnWriteArrayList<Tweet> timeline;
 	private int logSize;
 
 	/**
@@ -28,12 +36,14 @@ public class SiteVariables implements Serializable{
 	 *
 	 * @param n		The number of sites
 	 */
-	public SiteVariables(int n, Site site) {
+	public SiteVariables(int n, Site site, List<Site> sites) {
 		this.numProcesses = n;
 		this.mySite = site;
+		this.sites = sites;
 
 		this.writeAheadLog= new CopyOnWriteArrayList<>();
 		this.paxosValues = new CopyOnWriteArrayList<>();
+		this.timeline = new CopyOnWriteArrayList<>();
 		this.logSize = 0;
 	}
 
@@ -52,6 +62,16 @@ public class SiteVariables implements Serializable{
 	}
 	public int getLogSize() {
 		return logSize;
+	}
+	public List<Site> getSites() {
+		return sites;
+	}
+
+	public ArrayList<Tweet> getTimeline()
+	{
+		ArrayList<Tweet> l = new ArrayList<Tweet>();
+		l.addAll(timeline);
+		return l;
 	}
 
 	/* Setters */
@@ -125,28 +145,32 @@ public class SiteVariables implements Serializable{
 	}
 
 	/**
-	 * Determines if a user is blocked or not
+	 * Determines if a this site has blocked site s already
 	 *
 	 * @param s	The user we are interested in
 	 *
 	 * @return True if user blocked
 	 * 		   False otherwise
 	 */
-	public boolean isBlocked(Site s) {
-		// could simply search through writeAheadLog to see if blocked
-		// or could store local copy of blocks and search that
+	public boolean isBlocked(String s) {
+		boolean blocked = false;
 
+		for (TwitterEvent te : writeAheadLog) {
+			if (te instanceof Block) {
+				Block b = (Block) te;
+				if (b.getBlocker().getName().equals(mySite.getName()) && b.getBlockee().equals(s)) {
+					blocked = true;
+				}
+			} else if (te instanceof Unblock) {
+				Unblock u = (Unblock) te;
+				if (u.getUnblocker().getName().equals(mySite.getName()) && u.getUnblockee().equals(s)) {
+					blocked = false;
+				}
+			}
+		}
 
-
-//		for (Block b : dictionary.keySet()) {
-//			if (b.getBlocker().getName().equals(mySite.getName()) && b.getBlockee().equals(s.getName())) {
-//				return true;
-//			}
-//		}
-
-		return false;
+		return blocked;
 	}
-
 
 	public boolean hasBlocked(String n1,String n2) {
 //		for (Block b : dictionary.keySet()) {
@@ -160,5 +184,68 @@ public class SiteVariables implements Serializable{
 
 
 
+	/**
+	 * Recreate timeline if needed
+	 */
+	public void recreateTimeline() {
+		// determine type of most recent thing added to log
+		CopyOnWriteArrayList<Tweet> tweets = new CopyOnWriteArrayList<>();
+		List<String> blocks = new ArrayList<String>();
 
+		for (TwitterEvent event : writeAheadLog) {
+			if (event instanceof Tweet) {
+				Tweet t = (Tweet) event;
+				tweets.add(t);					
+				
+			}
+			else if (event instanceof Block)
+			{
+				Block b = (Block) event;
+				// System.out.println("found block " + b.toString());
+	
+				if (b.getBlockee().equals(mySite.getName()))
+				{
+					// System.out.println("adding block");
+					blocks.add(b.getBlocker().getName());
+				}
+			}
+			else if (event instanceof Unblock)
+			{
+				Unblock b = (Unblock) event;
+				
+				if (b.getUnblockee().equals(mySite.getName()))
+				{
+					blocks.remove(b.getUnblocker().getName());
+				}
+			}
+		}
+		// System.out.println("people blocking me: " + blocks);
+
+
+		List<Tweet> toRemove = new ArrayList<>();
+		
+		for (Tweet t : tweets)
+		{
+			if (blocks.contains(t.getUser().getName()))
+			{
+				toRemove.add(t);
+			}
+		}
+		
+		tweets.removeAll(toRemove);
+
+		timeline = tweets;
+	}
+
+	public void printWriteAheadLog() {
+		for (TwitterEvent t: writeAheadLog) {
+			if (t instanceof Tweet) {
+				System.out.println(((Tweet) t).toString());
+			} else if (t instanceof Block) {
+				System.out.println(((Block) t).toString());
+			} else {
+				System.out.println(((Unblock) t).toString());				
+			}
+		}
+	}
 }

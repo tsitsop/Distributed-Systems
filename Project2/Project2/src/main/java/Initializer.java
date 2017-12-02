@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import main.java.messages.RecoveryRequest;
+
 /**
  * This class will initialize the site, creating the TwitterServer
  * and ListeningServer. It will also initialize the site variables.
@@ -81,17 +83,22 @@ public class Initializer {
 		// initialize or recover site variables
 		SiteVariables vars = null;
 		if (UtilityFunctions.freshStart(mySite.getName())) {
-			vars = new SiteVariables(sites.size(), mySite);
+			vars = new SiteVariables(sites.size(), mySite, sites);
 		} else {
 			System.out.println("Recovering from a failure!");
 			// if kill program before entering input, file is empty
 			if (UtilityFunctions.isEmpty(mySite.getName())) {
-				vars = new SiteVariables(sites.size(), mySite);
+				vars = new SiteVariables(sites.size(), mySite, sites);
 			} else {
 				vars = UtilityFunctions.readVars(mySite);
 			}
 
-			// run full Paxos for each log entry - WITH DUMMY VALUES
+			// run full Paxos for each log entry			
+			// arbitrary logIndex
+			// may need to add more checking
+			RecoveryRequest message = new RecoveryRequest(mySite, 0);
+			SendMessageThread smt = new SendMessageThread(vars, message, sites);
+			smt.start();
 		}
 
 		// Start 2 servers:

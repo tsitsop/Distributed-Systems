@@ -8,6 +8,8 @@ import main.java.messages.Commit;
 import main.java.messages.PaxosMessage;
 import main.java.messages.Prepare;
 import main.java.messages.Promise;
+import main.java.messages.RecoveryInfo;
+import main.java.messages.RecoveryRequest;
 
 
 public class OnReceiveThread implements Runnable{
@@ -45,7 +47,15 @@ public class OnReceiveThread implements Runnable{
         	System.out.println("Received Commit message from " + m.getSender());
         	Commit cm = (Commit) m;
         	cm.onReceive(vars);
-        }
+        } else if (m instanceof RecoveryRequest) {
+			System.out.println("Received RecoveryRequest message from " + m.getSender());
+        	RecoveryRequest rm = (RecoveryRequest) m;
+        	rm.onReceive(vars);
+		} else if (m instanceof RecoveryInfo) {
+			System.out.println("Received RecoveryInfo message from " + m.getSender());
+        	RecoveryInfo rm = (RecoveryInfo) m;
+        	rm.onReceive(vars);
+		}
 	}
 
 	/**

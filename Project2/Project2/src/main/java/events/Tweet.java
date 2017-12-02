@@ -2,6 +2,7 @@ package main.java.events;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.joda.time.format.DateTimeFormat;
 
 import main.java.Site;
 
@@ -34,5 +35,11 @@ public class Tweet extends TwitterEvent {
 	}
 	public void setMessage(String message) {
 		this.message = message;
+	}
+
+
+	@Override
+	public String toString() {
+		return "(" + time.toString(DateTimeFormat.shortDateTime()) + ") " + user.getName() + ": " + message;
 	}
 }
