@@ -3,7 +3,6 @@ package main.java.messages;
 import java.io.Serializable;
 
 import main.java.Site;
-import main.java.SiteVariables;
 
 public class PaxosMessage implements Serializable {
 	private static final long serialVersionUID = 1L;
@@ -14,8 +13,7 @@ public class PaxosMessage implements Serializable {
 		this.sender = sender;
 	}
 	
-	public void onReceive(SiteVariables receiverSite) {
-		// do something
+	public void onReceive() {
 	}
 	
 	public String getSender() {

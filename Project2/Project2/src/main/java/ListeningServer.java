@@ -52,31 +52,9 @@ public class ListeningServer extends Thread{
 				// read in the message
 				m = (PaxosMessage) inFromClient.readObject();
 		        inFromClient.close();
-
-				System.out.println("got a message!!");
-
-		        // determine message type and run corresponding function
-		        if (m instanceof Prepare) {
-		        	System.out.println("Received Prepare message from " + m.getSender());
-		        	Prepare pm = (Prepare) m;
-		        	pm.onReceive(vars);
-		        } else if (m instanceof Promise) {
-		        	System.out.println("Received Propose message from " + m.getSender());
-		        	Promise pm = (Promise) m;
-		        	pm.onReceive(vars, sites);
-		        } else if (m instanceof Accept) {
-		        	System.out.println("Received Accept message from " + m.getSender());
-		        	Accept am = (Accept) m;
-		        	am.onReceive(vars);
-		        } else if (m instanceof Ack) {
-		        	System.out.println("Received Ack message from " + m.getSender());
-		        	Ack am = (Ack) m;
-		        	am.onReceive(vars);
-		        } else if (m instanceof Commit) {
-		        	System.out.println("Received Commit message from " + m.getSender());
-		        	Commit cm = (Commit) m;
-		        	cm.onReceive(vars);
-		        }
+		        
+		        OnReceiveThread t = new OnReceiveThread(vars, m, sites);
+		        t.start();
 			} catch (IOException e) {
 				e.printStackTrace();
 			} catch(ClassNotFoundException c) {

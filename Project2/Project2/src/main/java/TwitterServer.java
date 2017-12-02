@@ -72,36 +72,36 @@ public class TwitterServer extends Thread {
 								else
 									print user, tweet, time
 							once printed everything: continue
-						*/
-//						 for (LogEvent le: sortedList) {
-//						    	//gets TwitterEvent out of Log Event
-//						    	TwitterEvent te = le.getEvent();
-//
-//						    	//if event is tweet
-//						    	if (te.getEventType().compareTo("tweet") == 0) {
-//						    		Tweet t = (Tweet)te;
-//						    		// add blocked case, Log command prints regardless of blocked status
-//						    		boolean canView = false;
-//						    		if (!vars.hasBlocked(t.getUser().getName(), vars.getMySite().getName()) || o.equals("log")) {
-//						    			canView = true;
-//						    		}
-//		  
-//						    		if (canView) {
-//						    			System.out.println("("+t.getTime()+") "+"Tweet: "+t.getUser().getName()+" - "+t.getMessage());
-//						    		}
-//						    	}
-//
-//						    	if (o.equals("log")) {
-//						    		//log prints block and unblock events in
-//						    		if (te.getEventType().compareTo("block") == 0) {
-//						    			Block b = (Block)te;
-//						    			System.out.println("("+b.getTime()+") "+"Block: "+b.getBlocker().getName()+" - "+b.getBlockee());
-//						    		} else if (te.getEventType().compareTo("unblock") == 0) {
-//						    			Unblock u = (Unblock)te;
-//						    			System.out.println("("+u.getTime()+") "+"Unblock: "+u.getUnblocker().getName()+" - "+u.getUnblockee());
-//						    		}
-//						    	}
-//						    }
+						
+						 for (LogEvent le: sortedList) {
+						    	//gets TwitterEvent out of Log Event
+						    	TwitterEvent te = le.getEvent();
+
+						    	//if event is tweet
+						    	if (te.getEventType().compareTo("tweet") == 0) {
+						    		Tweet t = (Tweet)te;
+						    		// add blocked case, Log command prints regardless of blocked status
+						    		boolean canView = false;
+						    		if (!vars.hasBlocked(t.getUser().getName(), vars.getMySite().getName()) || o.equals("log")) {
+						    			canView = true;
+						    		}
+		  
+						    		if (canView) {
+						    			System.out.println("("+t.getTime()+") "+"Tweet: "+t.getUser().getName()+" - "+t.getMessage());
+						    		}
+						    	}
+
+						    	if (o.equals("log")) {
+						    		//log prints block and unblock events in
+						    		if (te.getEventType().compareTo("block") == 0) {
+						    			Block b = (Block)te;
+						    			System.out.println("("+b.getTime()+") "+"Block: "+b.getBlocker().getName()+" - "+b.getBlockee());
+						    		} else if (te.getEventType().compareTo("unblock") == 0) {
+						    			Unblock u = (Unblock)te;
+						    			System.out.println("("+u.getTime()+") "+"Unblock: "+u.getUnblocker().getName()+" - "+u.getUnblockee());
+						    		}
+						    	}
+						    } */
 					} else if (o.equals("log")) {
 						// print each log entry
 					}
@@ -127,8 +127,8 @@ public class TwitterServer extends Thread {
 				
 				// if you are leader, can skip prepare promise
 				if (vars.getLogSize() != 0) {
-					if (vars.getPaxosValues().get(vars.getLogSize()-1).getLeader() == vars.getMySite().getId()) {
-						System.out.println("yo");
+					if (vars.getPaxVal(vars.getLogSize()-1).getLeader() == vars.getMySite().getId()) {
+						System.out.println("skipping prepare-promise");
 						// create Accept message with proposal number 1
 						message = new Accept(vars.getMySite(), vars.getLogSize(), 1, e);
 						
@@ -139,17 +139,19 @@ public class TwitterServer extends Thread {
 						}
 					}
 				}  else {
+					// update Paxos log
 					synodValues.setMyProposal(e);
-					// create Prepare message with initial proposal number 1
-					message = new Prepare(vars.getMySite(), vars.getLogSize(), 1);
-					
-					// send message to all followers
-					for (Site site : sites) {
-						System.out.println("sending prepare to" + site.toString() + " sites");
+					synodValues.setMyProposalNum(1);
+					vars.modifyPaxosValues(vars.getLogSize(), synodValues);
 
-						tc = new TweetClient(message, site);
-						tc.start();
-					}
+					
+					// create Prepare message with initial proposal number 1
+					message = new Prepare(vars.getMySite(), vars.getLogSize()-1, 1);
+					
+
+					
+					SendMessageThread dmt = new SendMessageThread(vars, message, sites);
+					dmt.start();
 				}
 				
 				// store our site variables to disk to maintain memory (includes blocking/unblocking)

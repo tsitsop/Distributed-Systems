@@ -1,5 +1,7 @@
 package main.java.messages;
 
+import java.util.Arrays;
+
 import main.java.Site;
 import main.java.SiteVariables;
 import main.java.SynodValues;
@@ -22,11 +24,10 @@ public class Prepare extends PaxosMessage {
 	 * @param receiverSite The site who received the Propose message
 	 */
 	public void onReceive(SiteVariables receiverSite) {
-		// if haven't created a log entry at this index yet, need to make new one.
-		//  I think??
-		
 		SynodValues synodValues = receiverSite.getPaxVal(logIndex);
 
+//		System.err.println(Arrays.toString(Thread.currentThread().getStackTrace()));
+//		System.out.println(" entered onReceive of Prepare");
 		if (this.proposalNum > synodValues.getMaxPrepare()) {
 			// update local maxPrepare
 			synodValues.setMaxPrepare(proposalNum);
@@ -41,8 +42,22 @@ public class Prepare extends PaxosMessage {
 			TweetClient tc = new TweetClient(message, sender);
 			tc.start();
 		} else {
-			System.out.println("Proposal sent by " + sender.getName() + " had a number that was too small");
+			System.out.println("Prepare sent by " + sender.getName() + " had a number that was too small");
 		}
+	}
+
+	public Integer getProposalNum() {
+		return proposalNum;
+	}
+	public Integer getLogIndex() {
+		return logIndex;
+	}
+
+	public void setProposalNum(Integer proposalNum) {
+		this.proposalNum = proposalNum;
+	}
+	public void setLogIndex(Integer logIndex) {
+		this.logIndex = logIndex;
 	}
 
 }

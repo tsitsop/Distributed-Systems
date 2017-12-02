@@ -82,6 +82,8 @@ public class SynodValues implements Serializable{
 		this.acks = acks;
 	}
 
+	
+	
 	/**
 	 * Add promise to list of received promises
 	 * @param promise
