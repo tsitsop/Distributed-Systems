@@ -33,12 +33,14 @@ public class SendMessageThread implements Runnable{
 		// determine message type and run corresponding function
         if (m instanceof Prepare) {
         	Prepare pm = (Prepare) m;
-        	int logIndex = pm.getLogIndex();
+			int logIndex = pm.getLogIndex();
+
+			vars.clearPromises(logIndex);
 			
 			// send message to all sites
          	TweetClient tc;
         	for (Site site : sites) {
-             	System.out.println("Sending Prepare message to " + site.getName());
+             	System.out.println("(log index " + m.getLogIndex() + ") Sending Prepare message to " + site.getName());
 				tc = new TweetClient(m, site);
 				tc.start();
 			}
@@ -60,19 +62,20 @@ public class SendMessageThread implements Runnable{
 
 			// if we successfully received a majority of responses, send accepts
 			if (success) {
-				System.out.println("We got a majority response for promises");
+				System.out.println("(index " + m.getLogIndex() + ") We got a majority response for promises");
 				
 				Accept message = this.createAccept(vars, sites, logIndex);
 				SendMessageThread mt = new SendMessageThread(vars, message, sites);
 				mt.start();		
 			} else {
-				System.err.println("failed to get majority response");
+				System.err.println("(index " + m.getLogIndex() + ") Failed to get majority response for Promises. Sending Promises again");
 				
-				// restarting so empty our Promises list
+				// restarting so empty our Promises list, increase proposal num
 				vars.getPaxosValues().get(logIndex).setPromises(new CopyOnWriteArrayList<>());
-				
+				vars.getPaxVal(logIndex).setMyProposalNum(pm.getProposalNum()+1);
+
 				// create Prepare message with initial proposal number 1
-				Prepare newMessage = new Prepare(vars.getMySite(), vars.getLogSize(), pm.getProposalNum()+1);
+				Prepare newMessage = new Prepare(vars.getMySite(), logIndex, pm.getProposalNum()+1);
 
 				SendMessageThread mt = new SendMessageThread(vars, newMessage, sites);
 				mt.start();
@@ -81,10 +84,11 @@ public class SendMessageThread implements Runnable{
         } else if (m instanceof Accept) {
         	Accept am = (Accept) m;
 
+			vars.clearAcks(am.getLogIndex());
 			// send message to all sites
 			TweetClient tc;
 			for (Site site : sites) {
-				System.out.println("Sending Accept message to " + site.getName());
+				System.out.println("(index " + m.getLogIndex() + ") Sending Accept message to " + site.getName());
 				tc = new TweetClient(am, site);
 				tc.start();
 			}
@@ -106,17 +110,19 @@ public class SendMessageThread implements Runnable{
 			
 			// if we successfully received a majority of responses, send accepts
 			if (success) {
-				System.out.println("We got a majority response for Acks");
+				System.out.println("(index " + m.getLogIndex() + ") We got a majority response for Acks");
 			
 				// send Commit messages to all sites
 				Commit message = new Commit(vars.getMySite(), am.getLogIndex(), am.getV());
 				for (Site site : sites) {
-					System.out.println("Sending Commit message to " + site.getName());
+					System.out.println("(index " + m.getLogIndex() + ") Sending Commit message to " + site.getName());
 					tc = new TweetClient(message, site);
 					tc.start();
 				}
 			} else {
-				System.err.println("failed to get majority Ack responses. done.");
+				System.err.println("(index " + m.getLogIndex() + ") Failed to get majority responses for Ack. Sending Accepts again");
+				SendMessageThread smt = new SendMessageThread(vars, am, sites);
+				smt.start();
 			}
         } else if (m instanceof RecoveryRequest) {
 			
@@ -149,6 +155,8 @@ public class SendMessageThread implements Runnable{
 		}
 	}
 	
+
+
 	/**
 	 * Send accept message to all acceptors if have received majority promises
 	 * @param receiverSite the site that received the promises - the current site
@@ -164,7 +172,7 @@ public class SendMessageThread implements Runnable{
 		for (Promise promise : synodValues.getPromises()) {
 			if (promise.getAccNum() > largestAccNum) {
 				largestAccNum = promise.getAccNum();
-				if (bestValue != null) {
+				if (promise.getAccVal() != null) {
 					bestValue = promise.getAccVal();
 				}
 			}

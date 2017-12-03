@@ -70,7 +70,8 @@ public class TwitterServer extends Thread {
 					} else if (o.equals("log")) {
 						vars.printWriteAheadLog();
 					}
-					
+
+					System.out.println();
 					continue;
 				}
 
@@ -123,7 +124,6 @@ public class TwitterServer extends Thread {
 				// if you are leader, can skip prepare promise
 				if (vars.getLogSize() != 0) {
 					if (vars.getPaxVal(vars.getLogSize()-1).getLeader() == vars.getMySite().getId()) {
-						System.out.println("skipping prepare-promise");
 						// create Accept message with proposal number 
 						message = new Accept(vars.getMySite(), vars.getLogSize(), 1, e);
 						

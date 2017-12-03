@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import javax.net.ssl.ExtendedSSLSession;
+
 import main.java.events.Block;
 import main.java.events.Unblock;
 import main.java.events.TwitterEvent;
@@ -243,9 +245,22 @@ public class SiteVariables implements Serializable{
 				System.out.println(((Tweet) t).toString());
 			} else if (t instanceof Block) {
 				System.out.println(((Block) t).toString());
-			} else {
+			} else if (t instanceof Unblock){
 				System.out.println(((Unblock) t).toString());				
+			} else {
+				System.out.println("Invalid: "+t);
 			}
 		}
+	}
+
+	public void clearPromises(int index) {
+		expandLog(index+1);
+		paxosValues.get(index).clearPromises();
+	}
+
+	public void clearAcks(int index) {
+		expandLog(index+1);
+		
+		paxosValues.get(index).clearAcks();
 	}
 }

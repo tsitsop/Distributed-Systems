@@ -4,8 +4,9 @@ import main.java.Site;
 import main.java.SiteVariables;
 import main.java.SynodValues;
 import main.java.events.Block;
-import main.java.events.TwitterEvent;
+import main.java.events.*;
 import main.java.UtilityFunctions;
+
 public class Commit extends PaxosMessage {
 	private TwitterEvent v;
 
@@ -19,7 +20,16 @@ public class Commit extends PaxosMessage {
 		receiverSite.addToLog(v,logIndex);
 
 		// set the leader for this entry to sender
-		receiverSite.getPaxosValues().get(logIndex).setLeader(sender.getId());
+		int leader = sender.getId();
+		if (v instanceof Tweet) {
+			leader = ((Tweet)v).getUser().getId();
+		} else if (v instanceof Block) {
+			leader = ((Block)v).getBlocker().getId();
+		} else if (v instanceof Unblock) {
+			leader = ((Unblock)v).getUnblocker().getId();
+		}
+
+		receiverSite.getPaxosValues().get(logIndex).setLeader(leader);
 
 		//receiverSite.clearTimeline();
 

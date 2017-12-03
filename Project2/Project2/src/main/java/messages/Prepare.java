@@ -24,15 +24,13 @@ public class Prepare extends PaxosMessage {
 	public void onReceive(SiteVariables receiverSite) {
 		SynodValues synodValues = receiverSite.getPaxVal(logIndex);
 
-//		System.err.println(Arrays.toString(Thread.currentThread().getStackTrace()));
-//		System.out.println(" entered onReceive of Prepare");
 		if (this.proposalNum > synodValues.getMaxPrepare()) {
 			// update local maxPrepare
 			synodValues.setMaxPrepare(proposalNum);
 			receiverSite.modifyPaxosValues(logIndex, synodValues);
 
+			System.out.println("(index " + logIndex + ") Sending Promise back to "+ sender.getName());
 
-			System.out.println("Sending Promise back to "+ sender.getName());
 			// create Promise message
 			Promise message = new Promise(receiverSite.getMySite(), logIndex, synodValues.getAccNum(), synodValues.getAccVal());
 
@@ -40,7 +38,7 @@ public class Prepare extends PaxosMessage {
 			TweetClient tc = new TweetClient(message, sender);
 			tc.start();
 		} else {
-			System.out.println("Prepare sent by " + sender.getName() + " had a number that was too small");
+			System.out.println("(index " + logIndex + ") Prepare message sent by " + sender.getName() + " had a proposal number that was too small");
 		}
 	}
 

@@ -131,6 +131,13 @@ public class SynodValues implements Serializable{
 		return false;
 	}
 
+	public void clearPromises() {
+		promises.clear();
+	}
+
+	public void clearAcks() {
+		acks.clear();
+	}
 
 
 }
